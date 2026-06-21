@@ -229,14 +229,19 @@ public class Main {
         return output.toString();
     }
 
-    static Process runExternal(List<String> parts, boolean background, String outputFile) throws IOException {
+    static Process runExternal(List<String> parts, boolean background, String outputFile, String errorFile) throws IOException {
         ProcessBuilder pb = new ProcessBuilder(parts);
 
         if (outputFile != null) {
             pb.redirectOutput(new File(outputFile));
-            pb.redirectError(ProcessBuilder.Redirect.INHERIT);
         } else {
-            pb.inheritIO();
+            pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+        }
+
+        if (errorFile != null) {
+            pb.redirectError(new File(errorFile));
+        } else {
+            pb.redirectError(ProcessBuilder.Redirect.INHERIT);
         }
 
         Process process = pb.start();
@@ -270,11 +275,20 @@ public class Main {
                 continue;
 
             String outputFile = null;
+            String errorFile = null;
 
             for (int i = 0; i < parts.size(); i++) {
 
                 if (parts.get(i).equals(">") || parts.get(i).equals("1>")) {
                     outputFile = parts.get(i + 1);
+                    parts = new ArrayList<>(parts.subList(0, i));
+
+                    break;
+
+                }
+
+                if (parts.get(i).equals("2>")) {
+                    errorFile = parts.get(i + 1);
                     parts = new ArrayList<>(parts.subList(0, i));
 
                     break;
@@ -348,12 +362,12 @@ public class Main {
                     while (backgroundJobs.containsKey(id))
                         id++;
 
-                    Process p = runExternal(parts, true, outputFile);
+                    Process p = runExternal(parts, true, outputFile, errorFile);
                     backgroundJobs.put(id, new BackgroundJob(id, p, line));
 
                     System.out.println("[" + id + "] " + p.pid());
                 } else {
-                    runExternal(parts, false, outputFile);
+                    runExternal(parts, false, outputFile, errorFile);
                 }
             } else {
                 System.out.println(cmd + ": command not found");
