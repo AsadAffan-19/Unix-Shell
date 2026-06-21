@@ -229,9 +229,15 @@ public class Main {
         return output.toString();
     }
 
-    static Process runExternal(List<String> parts, boolean background) throws IOException {
+    static Process runExternal(List<String> parts, boolean background, String outputFile) throws IOException {
         ProcessBuilder pb = new ProcessBuilder(parts);
-        pb.inheritIO();
+
+        if (outputFile != null) {
+            pb.redirectOutput(new File(outputFile));
+            pb.redirectError(ProcessBuilder.Redirect.INHERIT);
+        } else {
+            pb.inheritIO();
+        }
 
         Process process = pb.start();
 
@@ -342,12 +348,12 @@ public class Main {
                     while (backgroundJobs.containsKey(id))
                         id++;
 
-                    Process p = runExternal(parts, true);
+                    Process p = runExternal(parts, true, outputFile);
                     backgroundJobs.put(id, new BackgroundJob(id, p, line));
 
                     System.out.println("[" + id + "] " + p.pid());
                 } else {
-                    runExternal(parts, false);
+                    runExternal(parts, false, outputFile);
                 }
             } else {
                 System.out.println(cmd + ": command not found");
