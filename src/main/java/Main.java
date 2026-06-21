@@ -281,7 +281,9 @@ public class Main {
                 String dir = parts.get(1);
 
                 if (dir.equals("~")) {
-                    dir = System.getProperty("user.home");
+
+                    dir = System.getenv("HOME");
+
                 }
 
                 Path targetPath;
