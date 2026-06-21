@@ -5,8 +5,7 @@ import java.util.*;
 public class Main {
 
     static final Set<String> BUILTINS = Set.of(
-            "echo", "exit", "type", "pwd", "cd", "jobs"
-    );
+            "echo", "exit", "type", "pwd", "cd", "jobs");
 
     static Map<Integer, BackgroundJob> backgroundJobs = new HashMap<>();
 
@@ -36,7 +35,8 @@ public class Main {
 
     static String findExecutable(String command) {
         String path = System.getenv("PATH");
-        if (path == null) return null;
+        if (path == null)
+            return null;
 
         for (String dir : path.split(File.pathSeparator)) {
             Path p = Paths.get(dir, command);
@@ -110,7 +110,8 @@ public class Main {
     static void checkAndReapJobs() {
         List<Integer> toRemove = new ArrayList<>();
 
-        if (backgroundJobs.isEmpty()) return;
+        if (backgroundJobs.isEmpty())
+            return;
 
         List<Integer> ids = new ArrayList<>(backgroundJobs.keySet());
         Collections.sort(ids);
@@ -123,8 +124,10 @@ public class Main {
 
             if (!job.process.isAlive()) {
                 String marker = " ";
-                if (id == mostRecent) marker = "+";
-                else if (secondMost != null && id == secondMost) marker = "-";
+                if (id == mostRecent)
+                    marker = "+";
+                else if (secondMost != null && id == secondMost)
+                    marker = "-";
 
                 String status = String.format("%-24s", "Done");
                 String cmd = job.command.trim();
@@ -154,7 +157,8 @@ public class Main {
                 return System.getProperty("user.dir") + "\n";
 
             case "type":
-                if (parts.size() < 2) return "";
+                if (parts.size() < 2)
+                    return "";
                 String target = parts.get(1);
 
                 if (BUILTINS.contains(target)) {
@@ -176,7 +180,8 @@ public class Main {
     }
 
     static String getJobsOutput() {
-        if (backgroundJobs.isEmpty()) return "";
+        if (backgroundJobs.isEmpty())
+            return "";
 
         StringBuilder output = new StringBuilder();
         List<Integer> ids = new ArrayList<>(backgroundJobs.keySet());
@@ -191,8 +196,10 @@ public class Main {
             BackgroundJob job = backgroundJobs.get(id);
 
             String marker = " ";
-            if (id == mostRecent) marker = "+";
-            else if (secondMost != null && id == secondMost) marker = "-";
+            if (id == mostRecent)
+                marker = "+";
+            else if (secondMost != null && id == secondMost)
+                marker = "-";
 
             boolean done = !job.process.isAlive();
 
@@ -231,7 +238,8 @@ public class Main {
         if (!background) {
             try {
                 process.waitFor();
-            } catch (InterruptedException ignored) {}
+            } catch (InterruptedException ignored) {
+            }
             return null;
         }
 
@@ -247,11 +255,13 @@ public class Main {
             System.out.print("$ ");
             System.out.flush();
 
-            if (!scanner.hasNextLine()) break;
+            if (!scanner.hasNextLine())
+                break;
             String line = scanner.nextLine();
 
             List<String> parts = tokenize(line);
-            if (parts.isEmpty()) continue;
+            if (parts.isEmpty())
+                continue;
 
             boolean background = false;
             if (parts.get(parts.size() - 1).equals("&")) {
@@ -261,22 +271,34 @@ public class Main {
 
             String cmd = parts.get(0);
 
-            if (cmd.equals("exit")) break;
+            if (cmd.equals("exit"))
+                break;
 
             if (cmd.equals("cd")) {
-                if (parts.size() < 2) continue;
+                if (parts.size() < 2)
+                    continue;
+
                 String dir = parts.get(1);
 
                 if (dir.equals("~")) {
                     dir = System.getProperty("user.home");
                 }
 
-                File file = new File(dir);
-                if (file.exists() && file.isDirectory()) {
-                    System.setProperty("user.dir", file.getCanonicalPath());
+                Path targetPath;
+
+                if (Paths.get(dir).isAbsolute()) {
+                    targetPath = Paths.get(dir);
+                } else {
+                    Path currentDir = Paths.get(System.getProperty("user.dir"));
+                    targetPath = currentDir.resolve(dir).normalize();
+                }
+
+                if (Files.exists(targetPath) && Files.isDirectory(targetPath)) {
+                    System.setProperty("user.dir", targetPath.toRealPath().toString());
                 } else {
                     System.out.println("cd: " + dir + ": No such file or directory");
                 }
+
                 continue;
             }
 
@@ -293,7 +315,8 @@ public class Main {
             if (executable != null) {
                 if (background) {
                     int id = 1;
-                    while (backgroundJobs.containsKey(id)) id++;
+                    while (backgroundJobs.containsKey(id))
+                        id++;
 
                     Process p = runExternal(parts, true);
                     backgroundJobs.put(id, new BackgroundJob(id, p, line));
