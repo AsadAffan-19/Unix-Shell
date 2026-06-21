@@ -263,6 +263,19 @@ public class Main {
             if (parts.isEmpty())
                 continue;
 
+            String outputFile = null;
+
+            for (int i = 0; i < parts.size(); i++) {
+
+                if (parts.get(i).equals(">") || parts.get(i).equals("1>")) {
+                    outputFile = parts.get(i + 1);
+                    parts = new ArrayList<>(parts.subList(0, i));
+
+                    break;
+
+                }
+            }
+
             boolean background = false;
             if (parts.get(parts.size() - 1).equals("&")) {
                 background = true;
@@ -306,9 +319,18 @@ public class Main {
 
             if (BUILTINS.contains(cmd)) {
                 String output = executeBuiltin(parts);
+
                 if (!output.isEmpty()) {
-                    System.out.print(output);
+
+                    if (outputFile != null) {
+                        Files.writeString(
+                                Paths.get(outputFile),
+                                output);
+                    } else {
+                        System.out.print(output);
+                    }
                 }
+
                 continue;
             }
 
