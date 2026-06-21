@@ -37,7 +37,7 @@ public class Main {
                         boolean executable = file.canExecute();
 
                         if (exist && executable) {
-                            System.out.println(command + " is " + dir);
+                            System.out.println(command + " is " + file);
                             found = true;
                             break;
 
